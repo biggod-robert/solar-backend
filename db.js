@@ -1,15 +1,18 @@
 const { Pool } = require('pg');
 
+
 // DEBUG: confirma qué URL carga
 console.log('📡 DATABASE_URL:', process.env.DATABASE_URL);
 
-const connectionString = process.env.DATABASE_URL || '';
+const connectionString = process.env.DATABASE_URL;
 // Si la URL incluye 'localhost', no usamos SSL; si no, activamos SSL
-const useSSL = !connectionString.includes('localhost');
+const useSSL = connectionString && !connectionString.includes('localhost');
 
 const pool = new Pool({
   connectionString,
-  ssl: useSSL ? { rejectUnauthorized: false } : false,
+  ssl: useSSL
+    ? { rejectUnauthorized: false }
+    : false,
 });
 
 pool
