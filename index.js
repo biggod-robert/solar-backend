@@ -1,5 +1,9 @@
 // 1️⃣ se carga .env únicamente si no existe DATABASE_URL y estamos en DEV
 require('dotenv').config();
+console.log({
+  NODE_ENV: process.env.NODE_ENV,
+  DATABASE_URL: process.env.DATABASE_URL
+});
 // 2️⃣ Ahora ya puedes usar process.env
 const express = require('express');
 const cors = require('cors');
