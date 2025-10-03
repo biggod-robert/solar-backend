@@ -1,7 +1,7 @@
 // 1️⃣ se carga .env únicamente si no existe DATABASE_URL y estamos en DEV
-const envFile = `.env.${process.env.NODE_ENV || 'development'}`;
-require('dotenv').config({ path: envFile });
-console.log(`📝 Cargando variables desde ${envFile}`);
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config({ path: '.env.development' });
+}
 console.log({
   NODE_ENV: process.env.NODE_ENV,
   DATABASE_URL: process.env.DATABASE_URL
