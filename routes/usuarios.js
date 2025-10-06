@@ -26,7 +26,7 @@ router.post(
 );
 
 // POST /api/usuarios/crear-admin
-router.post('/crear-admin', crearAdmin);
+router.post('/crear-admin', validarJWT, validarCampos, crearAdmin);
 
 // GET /api/usuarios/test
 router.get('/test', (req, res) => {

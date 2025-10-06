@@ -14,7 +14,7 @@ const cotizacionesRoutes = require('./routes/cotizaciones');
 const adminRoutes = require('./routes/admin');
 const db = require('./db');
 const bcrypt = require('bcrypt');
-
+const seedAdmin = require('./seeds/createAdmin');
 const app = express();
 app.use(express.json());
 app.use(cors({
@@ -35,5 +35,6 @@ const PORT = process.env.PORT || 3001;
 app.listen(PORT, () =>
   console.log(`☀️ Servidor solar encendido en puerto ${PORT}`)
 );
-
+seedAdmin()
+  .catch(err => console.error('❌ Error al crear admin seed:', err));
 module.exports = app;
