@@ -5,11 +5,12 @@ async function seedAdmin() {
   // Lee credenciales desde variables de entorno
   const user = process.env.ADMIN_USER;
   const pass = process.env.ADMIN_PASS;
+  const email = process.env.ADMIN_EMAIL;
 
-  if (!user || !pass) {
-    console.warn('⚠️ No se define ADMIN_USER o ADMIN_PASS en env, saltando seed admin');
-    return;
-  }
+   if (!user || !pass || !email) {
+     console.warn('⚠️ Debes definir ADMIN_USER, ADMIN_PASS y ADMIN_EMAIL');
+     return;
+   }
 
   // ¿Ya existe un admin?
   const { rowCount } = await pool.query(
@@ -23,9 +24,9 @@ async function seedAdmin() {
   // Si no existe, créalo
   const hash = await bcrypt.hash(pass, 10);
   await pool.query(
-    `INSERT INTO usuarios (usuario, nombre, cedula, password_hash, rol)
-     VALUES ($1,$2,$3,$4,$5)`,
-    [user, 'Administrador', '0000000000', hash, 'administrador']
+    `INSERT INTO usuarios (usuario, nombre, cedula, password_hash, rol, email)
+     VALUES ($1,$2,$3,$4,$5,$6)`,
+    [user, 'Administrador', '0000000000', hash, 'administrador', email]
   );
   console.log('✅ Usuario administrador creado:', user);
 }
