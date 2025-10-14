@@ -15,8 +15,8 @@ const router = Router();
 router.post(
   '/registro',
   body('usuario').notEmpty().withMessage('Usuario es obligatorio'),
-  body('password').isLength({ min: 6 }).withMessage('Password mínimo 6 caracteres'),
   body('email').isEmail().withMessage('Email inválido'),
+  body('password').isLength({ min: 6 }).withMessage('Password mínimo 6 caracteres'),
   validarCampos,
   registrarUsuario
 );
