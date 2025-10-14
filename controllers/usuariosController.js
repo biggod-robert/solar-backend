@@ -42,8 +42,8 @@ async function obtenerUsuarioPorId(req, res) {
  */
 // Registra un nuevo cotizador
 const registrarUsuario = async (req, res) => {
-  const { usuario, email, password } = req.body;
-  console.log(`📝 Intentando registrar: ${usuario} / ${email}`);
+  const { usuario, cedula, email, password } = req.body;
+  console.log(`📝 Intentando registrar: ${usuario} / ${cedula} / ${email}`);
 
   try {
     const existe = await db.query(
@@ -57,9 +57,9 @@ const registrarUsuario = async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
     await db.query(
       `INSERT INTO usuarios 
-         (usuario, nombre, email, password_hash, rol)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [usuario, 'Por definir', email, hash, 'cotizador']
+         (usuario, nombre, cedula, email, password_hash, rol)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [usuario, 'Por definir', cedula, email, hash, 'cotizador']
     );
 
     return res.status(201).json({ mensaje: 'Usuario registrado exitosamente' });

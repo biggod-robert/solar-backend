@@ -14,7 +14,7 @@ const router = Router();
 // POST /api/usuarios/registro
 router.post(
   '/registro',
-  validarCampos(['usuario', 'email', 'password']),
+  validarCampos(['usuario', 'cedula', 'email', 'password']),
   registrarUsuario
 );
 
