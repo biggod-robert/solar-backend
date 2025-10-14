@@ -14,7 +14,10 @@ const router = Router();
 // POST /api/usuarios/registro
 router.post(
   '/registro',
-  validarCampos(['usuario', 'password']),
+  body('usuario').notEmpty().withMessage('Usuario es obligatorio'),
+  body('password').isLength({ min: 6 }).withMessage('Password mínimo 6 caracteres'),
+  body('email').isEmail().withMessage('Email inválido'),
+  validarCampos,
   registrarUsuario
 );
 

@@ -42,8 +42,8 @@ async function obtenerUsuarioPorId(req, res) {
  */
 // Registra un nuevo cotizador
 const registrarUsuario = async (req, res) => {
-  const { usuario, password } = req.body;
-  console.log(`📝 Intentando registrar: ${usuario}`);
+  const { usuario, password, email } = req.body;
+  console.log(`📝 Intentando registrar: ${usuario} / ${cedula} / ${email}`);
 
   try {
     const existe = await db.query(
@@ -57,14 +57,22 @@ const registrarUsuario = async (req, res) => {
     const hash = await bcrypt.hash(password, 10);
     await db.query(
       `INSERT INTO usuarios 
-         (usuario, nombre, cedula, password_hash, rol)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [usuario, 'Por definir', '0', hash, 'cotizador']
+         (usuario, nombre, cedula, email, password_hash, rol)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [usuario, 'Por definir', '0', email, hash, 'cotizador']
     );
 
     return res.status(201).json({ mensaje: 'Usuario registrado exitosamente' });
   } catch (error) {
-    console.error('Error en registrarUsuario:', error);
+    console.error('❌ Error en registrarUsuario:', {
+      code:   error.code,
+      detail: error.detail,
+      message:error.message
+    });
+    // Manejo de duplicados
+    if (error.code === '23505') {
+      return res.status(409).json({ error: 'Usuario, cédula o email duplicado' });
+    }
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
