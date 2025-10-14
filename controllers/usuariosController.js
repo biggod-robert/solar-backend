@@ -42,7 +42,7 @@ async function obtenerUsuarioPorId(req, res) {
  */
 // Registra un nuevo cotizador
 const registrarUsuario = async (req, res) => {
-  const { usuario, password, email } = req.body;
+  const { usuario, email, password } = req.body;
   console.log(`📝 Intentando registrar: ${usuario} / ${email}`);
 
   try {
