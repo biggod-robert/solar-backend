@@ -1,8 +1,1 @@
-const express = require('express');
-const router = express.Router();
-const { obtenerEstadisticas } = require('../controllers/adminController');
-const { validarJWT, esAdminRole } = require('../middlewares/auth');
-
-router.get('/estadisticas', [validarJWT, esAdminRole], obtenerEstadisticas);
-
-module.exports = router;
+const express=require("express"),router=express.Router(),{obtenerEstadisticas:obtenerEstadisticas}=require("../controllers/adminController"),{validarJWT:validarJWT,esAdminRole:esAdminRole}=require("../middlewares/auth");router.get("/estadisticas",[validarJWT,esAdminRole],obtenerEstadisticas),module.exports=router;
