@@ -1,1 +1,19 @@
-const{Pool:Pool}=require("pg");console.log("📡 DATABASE_URL:",process.env.DATABASE_URL);const connectionString=process.env.DATABASE_URL,useSSL=connectionString&&!connectionString.includes("localhost"),pool=new Pool({connectionString:connectionString,ssl:!!useSSL&&{rejectUnauthorized:!1}});pool.query("SELECT NOW()").then((o=>console.log("✅ Conectado a PostgreSQL remoto:",o.rows[0]))).catch((o=>console.error("❌ Error al conectar con PostgreSQL:",o))),module.exports=pool;
+const { Pool } = require("pg");
+
+const connectionString = process.env.DATABASE_URL || "";
+console.log("📡 DATABASE_URL set?", !!connectionString);
+
+const useSSL = connectionString && !connectionString.includes("localhost");
+
+const pool = new Pool({
+  connectionString: connectionString || undefined,
+  ssl: useSSL ? { rejectUnauthorized: false } : false
+});
+
+// prueba de conexión inicial (opcional en prod, útil en deploy)
+pool
+  .query("SELECT NOW()")
+  .then((res) => console.log("✅ Conectado a PostgreSQL remoto:", res.rows[0]))
+  .catch((err) => console.error("❌ Error al conectar con PostgreSQL:", err));
+
+module.exports = pool;

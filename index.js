@@ -1,1 +1,49 @@
-"production"!==process.env.NODE_ENV&&require("dotenv").config({path:".env.development"}),console.log({NODE_ENV:process.env.NODE_ENV,DATABASE_URL:process.env.DATABASE_URL});const express=require("express"),cors=require("cors"),usuariosRoutes=require("./routes/usuarios"),cotizacionesRoutes=require("./routes/cotizaciones"),adminRoutes=require("./routes/admin"),db=require("./db"),bcrypt=require("bcrypt"),seedAdmin=require("./seeds/createAdmin"),app=express();app.use(express.json()),app.use(cors({origin:"*",methods:["GET","POST","PUT","DELETE","OPTIONS"],allowedHeaders:["Content-Type","Authorization"]})),app.use("/api/usuarios",usuariosRoutes),app.use("/api/cotizaciones",cotizacionesRoutes),app.use("/api/admin",adminRoutes),app.get("/",((e,s)=>s.send("Solar backend operativo")));const PORT=process.env.PORT||3001;app.listen(PORT,(()=>console.log(`☀️ Servidor solar encendido en puerto ${PORT}`))),seedAdmin().catch((e=>console.error("❌ Error al crear admin seed:",e))),module.exports=app;
+// carga dotenv solo en desarrollo
+if (process.env.NODE_ENV !== "production") {
+  require("dotenv").config({ path: ".env.development" });
+}
+
+console.log({
+  NODE_ENV: process.env.NODE_ENV,
+  DATABASE_URL: !!process.env.DATABASE_URL ? "[SET]" : "[NOT SET]"
+});
+
+const express = require("express");
+const cors = require("cors");
+const usuariosRoutes = require("./routes/usuarios");
+const cotizacionesRoutes = require("./routes/cotizaciones");
+const adminRoutes = require("./routes/admin");
+const db = require("./db");
+const bcrypt = require("bcrypt");
+const seedAdmin = require("./seeds/createAdmin");
+const app = express();
+
+app.use(express.json());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+app.use("/api/usuarios", usuariosRoutes);
+app.use("/api/cotizaciones", cotizacionesRoutes);
+app.use("/api/admin", adminRoutes);
+
+app.get("/", (req, res) => res.send("Solar backend operativo"));
+
+app.get("/health", (req, res) => res.status(200).json({ ok: true, time: new Date().toISOString() }));
+
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 3001;
+  const HOST = "0.0.0.0";
+  app.listen(PORT, HOST, () => {
+    console.log(`☀️ Servidor solar encendido en ${HOST}:${PORT}`);
+  });
+}
+
+// Ejecutar seed de admin pero no bloquear arranque
+seedAdmin()
+  .then(() => console.log("✅ Seed admin ejecutado"))
+  .catch((e) => console.error("❌ Error al crear admin seed:", e));
+
+module.exports = app;
