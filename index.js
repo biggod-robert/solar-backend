@@ -46,4 +46,31 @@ seedAdmin()
   .then(() => console.log("✅ Seed admin ejecutado"))
   .catch((e) => console.error("❌ Error al crear admin seed:", e));
 
+// debug temporal: listar rutas registradas
+app.get("/api/debug-routes", (req, res) => {
+  try {
+    const routes = [];
+    if (app._router && app._router.stack) {
+      app._router.stack.forEach((mw) => {
+        if (mw.route && mw.route.path) {
+          const methods = Object.keys(mw.route.methods).join(",");
+          routes.push(`${methods} ${mw.route.path}`);
+        } else if (mw.name === "router" && mw.handle && mw.handle.stack) {
+          mw.handle.stack.forEach((r) => {
+            if (r.route && r.route.path) {
+              const methods = Object.keys(r.route.methods).join(",");
+              // prefijo del router no es accesible desde aquí; lo listamos tal cual
+              routes.push(`${methods} ${r.route.path}`);
+            }
+          });
+        }
+      });
+    }
+    res.json({ ok: true, routes });
+  } catch (e) {
+    res.status(500).json({ ok:false, error: String(e) });
+  }
+});
+
+
 module.exports = app;
