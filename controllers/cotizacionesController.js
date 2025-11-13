@@ -1,1 +1,116 @@
-const db=require("../db"),registrarCotizacion=async(a,o)=>{const{nombre:t,cedula:n,consumo:r,ciudad:e,panel:s,tipoTecho:i,tipoFase:c,piso:u,potenciaKw:d,cantidadPaneles:l,area:E,totalCotizado:C}=a.body,p=a.user.id;try{const a=await db.query("\n      INSERT INTO cotizaciones (\n        usuario, nombre, cedula,\n        consumo, ciudad, panel,\n        tipo_techo, tipo_fase,\n        piso, potencia_kw,\n        cantidad_paneles, area,\n        total_cotizado\n      ) VALUES (\n        $1, $2, $3,\n        $4, $5, $6,\n        $7, $8,\n        $9, $10,\n        $11, $12,\n        $13\n      )\n      RETURNING *;\n    ",[p,t,n,r,e,s,i,c??"Trifásico",u??"Primer piso",d??0,l??0,E??0,C]);return o.status(201).json(a.rows[0])}catch(a){return console.error("❌ Error al registrar cotización:",a),o.status(500).json({error:"Error interno",details:a.message})}},obtenerCotizaciones=async(a,o)=>{const{ciudad:t,fecha:n}=a.query;let r="SELECT * FROM cotizaciones";const e=[];(t||n)&&(r+=" WHERE",t&&(e.push(t),r+=` ciudad = $${e.length}`),n&&(t&&(r+=" AND"),e.push(n),r+=` fecha::date = $${e.length}`)),r+=" ORDER BY fecha DESC";try{const a=await db.query(r,e);o.json(a.rows)}catch(a){console.error("❌ Error al obtener cotizaciones:",a),o.status(500).json({error:"Error en el servidor"})}},obtenerEstadisticas=async(a,o)=>{try{const a=await db.query("\n      SELECT ciudad, COALESCE(COUNT(*), 0) AS total\n      FROM cotizaciones\n      GROUP BY ciudad\n    "),t=await db.query("\n      SELECT TO_CHAR(fecha::date, 'YYYY-MM-DD') AS fecha, COUNT(*) AS total\n      FROM cotizaciones\n      WHERE fecha >= NOW() - INTERVAL '7 days'\n      GROUP BY fecha::date\n      ORDER BY fecha::date;\n    "),n=await db.query("\n      SELECT panel, COALESCE(COUNT(*), 0) AS count\n      FROM cotizaciones\n      GROUP BY panel\n      ORDER BY count DESC\n      LIMIT 5;\n    "),r=await db.query("\n      SELECT u.usuario AS usuario,\n             COALESCE(COUNT(c.id), 0) AS count\n      FROM cotizaciones c\n      JOIN usuarios u\n        ON u.id = c.usuario\n      GROUP BY u.usuario\n      ORDER BY count DESC\n      LIMIT 5;\n    "),e=(a,o)=>a.rows.map((a=>({...a,[o]:Number(a[o]??0)})));return console.log("📊 Estadísticas generadas:",{porCiudad:e(a,"total"),porFecha:e(t,"total"),panelesPopulares:e(n,"count"),usuariosMasActivos:e(r,"count")}),o.status(200).json({porCiudad:e(a,"total"),porFecha:e(t,"total"),panelesPopulares:e(n,"count"),usuariosMasActivos:e(r,"count")})}catch(a){return console.error("❌ Error en estadísticas:",a),o.status(500).json({error:"Error al obtener estadísticas",detalle:a.message})}},actualizarCotizacion=async(a,o)=>{const{id:t}=a.params,n=a.body;console.log(`🔄 PUT /api/cotizaciones/${t}`,n);try{const a=[],r=[];let e=1;for(const o of["usuario","nombre","cedula","ciudad","panel","totalCotizado"])void 0!==n[o]&&(a.push(`${o} = $${e}`),r.push(n[o]),e++);if(0===a.length)return o.status(400).json({msg:"Nada que actualizar"});const s=`\n      UPDATE cotizaciones\n      SET ${a.join(", ")}\n      WHERE id = $${e}\n      RETURNING *;\n    `;r.push(t);const i=(await db.query(s,r)).rows[0];return o.status(200).json({ok:!0,msg:"Cotización actualizada",cotizacion:i})}catch(a){return console.error("❌ Error al actualizar cotización:",a),o.status(500).json({error:"Error en el servidor"})}};module.exports={registrarCotizacion:registrarCotizacion,obtenerCotizaciones:obtenerCotizaciones,obtenerEstadisticas:obtenerEstadisticas,actualizarCotizacion:actualizarCotizacion};
+const db = require("../db"),
+    registrarCotizacion = async (a, o) => {
+        console.log("📥 Entró a registrarCotizacion con body:", req.body);
+
+        const {
+                nombre: t,
+                cedula: n,
+                consumo: r,
+                ciudad: e,
+                panel: s,
+                tipoTecho: i,
+                tipoFase: c,
+                piso: u,
+                potenciaKw: d,
+                cantidadPaneles: l,
+                area: E,
+                totalCotizado: C,
+            } = a.body,
+            p = a.user.id;
+        try {
+            const a = await db.query(
+                "\n      INSERT INTO cotizaciones (\n        usuario, nombre, cedula,\n        consumo, ciudad, panel,\n        tipo_techo, tipo_fase,\n        piso, potencia_kw,\n        cantidad_paneles, area,\n        total_cotizado\n      ) VALUES (\n        $1, $2, $3,\n        $4, $5, $6,\n        $7, $8,\n        $9, $10,\n        $11, $12,\n        $13\n      )\n      RETURNING *;\n    ",
+                [p, t, n, r, e, s, i, c ?? "Trifásico", u ?? "Primer piso", d ?? 0, l ?? 0, E ?? 0, C]
+            );
+            return o.status(201).json(a.rows[0]);
+        } catch (a) {
+            return (
+                console.error("❌ Error al registrar cotización:", a),
+                o.status(500).json({ error: "Error interno", details: a.message })
+            );
+        }
+    },
+    obtenerCotizaciones = async (a, o) => {
+        console.log("📥 Entró a obtenerCotizaciones con query:", req.query);
+        const { ciudad: t, fecha: n } = a.query;
+        let r = "SELECT * FROM cotizaciones";
+        const e = [];
+        (t || n) &&
+            ((r += " WHERE"),
+            t && (e.push(t), (r += ` ciudad = $${e.length}`)),
+            n && (t && (r += " AND"), e.push(n), (r += ` fecha::date = $${e.length}`))),
+            (r += " ORDER BY fecha DESC");
+        try {
+            const a = await db.query(r, e);
+            console.log("📤 Cotizaciones obtenidas:", a.rows.length);
+            o.json(a.rows);
+        } catch (a) {
+            console.error("❌ Error al obtener cotizaciones:", a),
+                o.status(500).json({ error: "Error en el servidor" });
+        }
+    },
+    obtenerEstadisticas = async (a, o) => {
+        console.log("📥 Entró a obtenerEstadisticas");
+        try {
+            const a = await db.query(
+                    "\n      SELECT ciudad, COALESCE(COUNT(*), 0) AS total\n      FROM cotizaciones\n      GROUP BY ciudad\n    "
+                ),
+                t = await db.query(
+                    "\n      SELECT TO_CHAR(fecha::date, 'YYYY-MM-DD') AS fecha, COUNT(*) AS total\n      FROM cotizaciones\n      WHERE fecha >= NOW() - INTERVAL '7 days'\n      GROUP BY fecha::date\n      ORDER BY fecha::date;\n    "
+                ),
+                n = await db.query(
+                    "\n      SELECT panel, COALESCE(COUNT(*), 0) AS count\n      FROM cotizaciones\n      GROUP BY panel\n      ORDER BY count DESC\n      LIMIT 5;\n    "
+                ),
+                r = await db.query(
+                    "\n      SELECT u.usuario AS usuario,\n             COALESCE(COUNT(c.id), 0) AS count\n      FROM cotizaciones c\n      JOIN usuarios u\n        ON u.id = c.usuario\n      GROUP BY u.usuario\n      ORDER BY count DESC\n      LIMIT 5;\n    "
+                ),
+                e = (a, o) => a.rows.map((a) => ({ ...a, [o]: Number(a[o] ?? 0) }));
+            return (
+                console.log("📊 Estadísticas generadas:", {
+                    porCiudad: e(a, "total"),
+                    porFecha: e(t, "total"),
+                    panelesPopulares: e(n, "count"),
+                    usuariosMasActivos: e(r, "count"),
+                }),
+                o.status(200).json({
+                    porCiudad: e(a, "total"),
+                    porFecha: e(t, "total"),
+                    panelesPopulares: e(n, "count"),
+                    usuariosMasActivos: e(r, "count"),
+                })
+            );
+        } catch (a) {
+            return (
+                console.error("❌ Error en estadísticas:", a),
+                o.status(500).json({ error: "Error al obtener estadísticas", detalle: a.message })
+            );
+        }
+    },
+    actualizarCotizacion = async (a, o) => {
+        const { id: t } = a.params,
+            n = a.body;
+        console.log(`🔄 PUT /api/cotizaciones/${t}`, n);
+        try {
+            const a = [],
+                r = [];
+            let e = 1;
+            for (const o of ["usuario", "nombre", "cedula", "ciudad", "panel", "totalCotizado"])
+                void 0 !== n[o] && (a.push(`${o} = $${e}`), r.push(n[o]), e++);
+            if (0 === a.length) return o.status(400).json({ msg: "Nada que actualizar" });
+            const s = `\n      UPDATE cotizaciones\n      SET ${a.join(", ")}\n      WHERE id = $${e}\n      RETURNING *;\n    `;
+            r.push(t);
+            const i = (await db.query(s, r)).rows[0];
+            return o.status(200).json({ ok: !0, msg: "Cotización actualizada", cotizacion: i });
+        } catch (a) {
+            return (
+                console.error("❌ Error al actualizar cotización:", a),
+                o.status(500).json({ error: "Error en el servidor" })
+            );
+        }
+    };
+module.exports = {
+    registrarCotizacion: registrarCotizacion,
+    obtenerCotizaciones: obtenerCotizaciones,
+    obtenerEstadisticas: obtenerEstadisticas,
+    actualizarCotizacion: actualizarCotizacion,
+};
