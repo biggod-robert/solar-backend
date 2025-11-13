@@ -1,7 +1,9 @@
 const serverless = require("serverless-http");
 const app = require("../index");
 
+const handler = serverless(app);
+
+// ✅ Exportar directamente la función que Vercel espera
 module.exports = (req, res) => {
-  const handler = serverless(app);
   return handler(req, res);
 };
