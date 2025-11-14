@@ -1,6 +1,9 @@
-const validarCampos = (o) => (a, r, s) => {
-    const t = o.filter((o) => !a.body[o]);
-    if (t.length > 0) return r.status(400).json({ error: `Faltan campos: ${t.join(", ")}` });
-    s();
+const validarCampos = (campos) => (req, res, next) => {
+  const faltantes = campos.filter((campo) => !req.body[campo]);
+  if (faltantes.length > 0) {
+    return res.status(400).json({ error: `Faltan campos: ${faltantes.join(", ")}` });
+  }
+  next();
 };
+
 module.exports = validarCampos;

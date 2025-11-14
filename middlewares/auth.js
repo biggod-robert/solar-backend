@@ -1,1 +1,17 @@
-const validarJWT=(r,o,a)=>{const i=r.headers.authorization?.split(" ")[1];if(!i||"tu_token_de_prueba"!==i)return o.status(401).json({error:"Token inválido o faltante"});r.usuario={rol:"administrador"},a()},esAdminRole=(r,o,a)=>{if("administrador"!==r.usuario?.rol)return o.status(403).json({error:"Acceso solo para administrador"});a()};module.exports={validarJWT:validarJWT,esAdminRole:esAdminRole};
+const validarJWT = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+  if (!token || token !== "tu_token_de_prueba") {
+    return res.status(401).json({ error: "Token inválido o faltante" });
+  }
+  req.usuario = { rol: "administrador" };
+  next();
+};
+
+const esAdminRole = (req, res, next) => {
+  if (req.usuario?.rol !== "administrador") {
+    return res.status(403).json({ error: "Acceso solo para administrador" });
+  }
+  next();
+};
+
+module.exports = { validarJWT, esAdminRole };

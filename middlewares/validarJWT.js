@@ -1,15 +1,24 @@
 const jwt = require("jsonwebtoken");
-function validarJWT(o, r, e) {
-    console.log("🔔 Middleware validarJWT disparado para:", o.method, o.originalUrl);
-    const n = o.headers.authorization;
-    if (!n?.startsWith("Bearer ")) return r.status(401).json({ msg: "No token proporcionado" });
-    const s = n.split(" ")[1];
-    console.log("🔍 Token recibido en validarJWT:", s);
-    try {
-        const r = jwt.verify(s, process.env.JWT_SECRET);
-        return (o.user = r), console.log("✅ JWT válido para UID:", r), e();
-    } catch (o) {
-        return console.error("🚫 JWT inválido:", o), r.status(401).json({ msg: "Token inválido" });
-    }
+
+function validarJWT(req, res, next) {
+  console.log("🔔 Middleware validarJWT disparado para:", req.method, req.originalUrl);
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    return res.status(401).json({ msg: "No token proporcionado" });
+  }
+
+  const token = authHeader.split(" ")[1];
+  console.log("🔍 Token recibido en validarJWT:", token);
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    req.user = decoded;
+    console.log("✅ JWT válido para UID:", decoded);
+    next();
+  } catch (err) {
+    console.error("🚫 JWT inválido:", err);
+    return res.status(401).json({ msg: "Token inválido" });
+  }
 }
+
 module.exports = validarJWT;
